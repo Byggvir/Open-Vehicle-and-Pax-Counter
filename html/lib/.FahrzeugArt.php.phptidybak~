@@ -1,0 +1,145 @@
+<?php
+/**
+ * events.php
+ *
+ * @package default
+ */
+
+
+/*
+ * Autor: Thomas Arend
+ * Stand: 05.11.202ß8
+ *
+ * Better quick and dirty than perfect but never!
+ *
+ * Securety check: No direct calls are allowed
+ */
+
+global $VerkehrTest;
+
+isset($VerkehrTest) or exit ( "No direct calls!" ) ;
+
+include_once "db.php";
+include_once "lib.php";
+
+/*
++---------------+------------+------+-----+---------+----------------+
+| Field         | Type       | Null | Key | Default | Extra          |
++---------------+------------+------+-----+---------+----------------+
+| id            | BIGINT(20) | NO   | PRI | NULL    | auto_increment |
+| Art           | CAHR(32)   | YES  | MUL | NULL    | Default "Pkw"  |
++---------------+------------+------+-----+---------+----------------+
+*/
+
+class FahrzeugArt extends ZaehlungDB {
+
+	public $id            = 0 ;
+	public $Art           = "Pkw" ;
+
+	/**
+	 *
+	 */
+	public function __construct() {
+
+		parent::__construct();
+	}
+
+
+	/**
+	 *
+	 */
+	function copyrow($reset = FALSE) {
+        
+        parent::copyrow();
+        
+		$this->id = $this->rres['id'];
+		$this->Art = $this->rres['Art'];
+		
+	
+    }
+
+
+
+	/**
+	 *
+	 * @param unknown $id
+	 */
+	function look_up($id) {
+        
+        if (is_null($id) or !is_numeric($id)) {
+            $SQL = 'select * from FahrzeugArt order by id limit 1;';
+        } else {
+            $SQL = 'select * from FahrzeugArt where id =' . $id . ' limit 1;';
+        }
+		if ($this->select($SQL)){
+            $this->fetchrow(TRUE);
+        }
+
+	}
+
+
+	/**
+	 *
+	 * @return unknown
+	 */
+	function insert_into_db() {
+
+		$SQL = 'insert into FahrzeugArt '
+			. ' values ( NULL'
+			. ','  . $this->Art
+			. ');';
+
+
+		if ($this->conn->query($SQL) === TRUE) {
+			$msg = "Neue FahrzeugArt angelegt.";
+		} else {
+			$msg = "Datenbank: Leider keine neue FahrzeugArt angelegt.";
+		}
+
+		return $msg;
+
+	}
+
+	/**
+	 *
+	 */
+	function list ($fid) {
+	    $SQL = 'select f.id as id ,'
+	    . ' f.Art as Art'
+	    . ' from FahrzeugArt as f order by f.id;';
+		if ( $this->select($SQL) ) {
+
+
+			while ($this->fetchrow()) {
+
+				/* Table of Records */
+
+				print ( '<option id="FahrzeugArt'
+                    . $this->id
+                    . '" name="FahrzeugArt" value="'
+                    . $this->id
+                    . '" '
+                    .  checked($this->id , $fid ));
+                        
+                print ( ' >' . $this->Art . '</option>' . PHP_EOL ) ;
+                
+                
+			} /* end while */
+?>
+
+</tbody>
+</table>
+</div>
+
+<?php
+		} /* end if */
+		else {
+			print ( "<p>Keine Fahrzeugart gefunden.</p>" );
+		}
+
+	} /* end of events.list */
+
+
+}
+
+?>

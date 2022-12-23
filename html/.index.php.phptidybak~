@@ -1,0 +1,163 @@
+<?php
+/**
+ * index.php
+ *
+ * @package default
+ */
+
+
+?>
+<!DOCTYPE html>
+<html lang="de-DE" class="no-js">
+
+<?php
+
+/*
+ * Autor: Thomas Arend
+ * Stand: 30.12.2018
+ *
+ * Better quick and dirty than perfect but never!
+ *
+/* Security token to detect direct calls of included libraries. */
+
+$VerkehrTest = "Started";
+
+include_once "lib/lib.php" ;
+
+include_once "lib/db.php" ;
+include_once "lib/FahrzeugArt.php" ;
+include_once "lib/Zaehlungen.php" ;
+
+$DEBUG = FALSE;
+$message = "";
+$debugmsg = "";
+
+filter_var_array($_POST, FILTER_SANITIZE_SPECIAL_CHARS);
+
+
+if (array_key_exists('signin', $_POST)) {
+	$signin = $_POST['signin'];
+}
+else {
+	$signin = "";
+}
+$PARAMS = $_POST;
+
+$Z = new Zaehlungen () ;
+$Z->set($PARAMS);
+
+if ( ! empty($signin) and empty($Z->aid) ) {
+	$message .= "Keine Beobachtung.";
+} else {
+
+	switch ($signin) {
+
+	case "OK" :
+			$message .= $Z->add_beobachtung() . '<br />';
+
+		break;
+
+	}
+}
+
+echo $message;
+
+?>
+
+<head>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="expires" content="0">
+	<meta http-equiv="cache-control" content="no-cache">
+	<meta http-equiv="pragma" content="no-cache">
+	<meta name="theme-color" content="#00dd00">
+	<meta name="description" content="Verkehrszählung für Fahrzeuge">
+	<meta name="keywords" lang="de" content="Verkehrszählung,Fahrzeuge, Insassen">
+	<meta name="format-detection" content="telephone=yes">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+
+    <title>Verkehrszählung</title>
+
+</head>
+
+<body>
+
+<div id="header" class="page-header">
+
+<div class="page-text"> 
+<h1>Verkehrszählung</h1>
+</div>
+
+<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" id="zaehlung" >
+
+<main class="container">
+<section class="box">
+
+<h3>Fahrzeug beschreiben</h3>
+
+<label for="Art">Fahrzeug Art:</label>
+
+<select id="aid" name="aid">
+<?php
+
+$FList = new FahrzeugArt();
+$FList->list(1);
+unset($FList);
+
+?>
+</select>
+
+<br />
+
+<label for="Insassen">Anzahl Insassen:</label>
+
+<select id="Insassen" name="Insassen">
+
+  <option value="1" >1</option>
+  <option value="2" >2</option>
+  <option value="3" >3</option>
+  <option value="4" >4</option>
+  <option value="5" >5</option>
+  <option value="5+" >&gt;5</option>
+  <option value="0" >Unbekannt</option>
+  
+</select>
+
+</section>
+
+<section class="box">
+
+<h3>Fahrzeug zählen</h3>
+
+<div class="button" >
+
+<button id="signin"
+    name="signin"
+    type="submit"
+    value="OK"
+    style="color: green; font-weight: bold;">Fahrzeug zählen</button>
+
+</div>
+
+</section>
+
+<section class="box">
+
+<h3>Liste</h3>
+
+<?php
+
+	$Z->list();
+
+?>
+
+</div>
+
+</section>
+
+</main>
+</form>
+
+</body>
+</html>

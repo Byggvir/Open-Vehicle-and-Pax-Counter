@@ -1,0 +1,226 @@
+<?php
+
+/*
+ * Autor: Thomas Arend
+ * Stand: 05.11.202ß8
+ *
+ * Better quick and dirty than perfect but never!
+ *
+ * Securety check: No direct calls are allowed 
+ */
+
+global $AnmeldungTest;
+
+isset($AnmeldungTest) or exit ("No direct calls!" ) ;
+
+include_once "db.php";
+include_once "lib.php";
+
+/*
++---------------+------------+------+-----+---------+----------------+
+| Field         | Type       | Null | Key | Default | Extra          |
++---------------+------------+------+-----+---------+----------------+
+| id            | bigint(20) | NO   | PRI | NULL    | auto_increment |
+| gid           | bigint(20) | YES  | MUL | NULL    |                |
+| Starttime     | datetime   | YES  | MUL | NULL    |                |
+| Endtime       | datetime   | YES  | MUL | NULL    |                |
+| Title         | char(64)   | YES  | MUL | NULL    |                |
+| Subtitle      | char(64)   | YES  | MUL | NULL    |                |
+| Place         | char(32)   | YES  | MUL | NULL    |                |
+| SeatCapacity  | int(11)    | YES  |     | 10      |                |
+| ReservedSeats | int(11)    | YES  |     | 0       |                |
+| MaxGroups     | int(11)    | YES  |     | 2       |                |
++---------------+------------+------+-----+---------+----------------+
+*/
+
+class event extends evservicesdb {
+
+    public $id            = NULL ;           
+    public $gid           = NULL ;        
+    public $Starttime     = NULL ; 
+    public $Endtime       = NULL ;
+    public $Title         = NULL ;
+    public $Subtitle      = NULL ;
+    public $Place         = NULL ;
+    public $SeatCapacity  = 0 ;
+    public $ReservedSeats = 0 ;
+    public $MaxGroups     = 2 ;
+    private $evt = NULL;
+    
+    public function __construct () {
+    
+        parent::__construct();
+    }
+
+    function copyrow () {
+    
+        $this->id = $this->rres['id'];
+        $this->gid = $this->rres['gid'];
+        $this->Starttime = $this->rres['Starttime'];
+        $this->Endtime = $this->rres['Endtime'];
+        $this->Title = $this->rres['Title'];
+        $this->Subtitle = $this->rres['Subtitle'];
+        $this->Place = $this->rres['Place'];
+        $this->SeatCapacity = $this->rres['SeatCapacity'];
+        $this->ReservedSeats = $this->rres['ReservedSeats'];
+        $this->MaxGroups = $this->rres['MaxGroups'];
+    
+    }
+   
+    function fetchrow () {
+        
+        if(parent::fetchrow()){
+            $this->copyrow();
+            return(TRUE);
+        } else {
+            $this->id = NULL;
+            return(FALSE);
+        }
+        
+    }
+
+    function look_up ($id) {
+
+        $SQL = 'select * from events where id =' . $id . ' limit 1;'; 
+        $this->select($SQL);
+        $this->fetchrow($SQL);
+
+    }
+
+    function insert_into_db () {
+            
+        $SQL = 'insert into events ' 
+        . ' values ( NULL'
+        . ','  . $this->gid
+        . ',"' . $this->Starttime . '"'
+        . ',"' . $this->Endtime . '"'
+        . ',"' . $this->Title . '"'
+        . ',"' . $this->Subtitle . '"'
+        . ',"' . $this->Place  . '"'
+        . ','  . $this->SeatCapacity
+        . ','  . $this->ReservedSeats
+        . ','  . $this->MaxGroups
+        . ');';
+
+        
+        if ($this->conn->query($SQL) === TRUE) {
+            $msg = "Neuer Termin angelegt.";
+        } else {
+            $msg = "Datenbank: Leider kein neuer Termin angelegt.";
+        }
+        
+        return($msg);
+    
+    }
+    
+/*    
+    List all in HTML table
+*/
+    function list ($eid, $SQL = 'select * from events order by Starttime;') {
+    
+        if ( $this->select($SQL) ) {
+        
+
+// Table header
+?>
+
+<div class="table-wrapper">
+
+<table>
+<thead>
+<tr>
+<th class="colsignin">
+Auswahl
+</th>
+<!--th>
+Nr.
+</th>
+<th>
+Gruppe
+</th-->
+<th class="colbegin">
+Beginn
+</th>
+<th>
+Ende
+</th>
+<th class="coltitle">
+Titel
+</th>
+<th class="colsubtitle">
+Untertitel
+</th>
+<th class="colplace">
+Ort
+</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+<?php     
+    
+    while ($this->fetchrow()) {
+
+    /* Table of Records */
+    $start = new DateTime($this->Starttime);
+    $ende = new DateTime($this->Endtime);
+ 
+
+    print ( '<tr>' .  PHP_EOL);
+    print ( '<td class="center result radiobutton">' . PHP_EOL);
+    print ( '<input type="radio" id="event'
+        . $this->id 
+        . '" name="event" value="'
+        . $this->id 
+        . '" ' 
+        .  checked($this->id , $eid ) 
+        . '>' . PHP_EOL ) ; 
+
+    print ( "</td>" . PHP_EOL);
+    
+    print ( '<td class="left result">' . $start->format('d.m.y H:i') . '</td>' .  PHP_EOL);
+    print ( '<td class="left result ">' . $ende->format('d.m.y H:i') . '</td>' .  PHP_EOL);
+    print ( '<td class="left result ">' . $this->Title . '</td>' .  PHP_EOL);
+    print ( '<td class="right result ">' . $this->Subtitle . '</td>' .  PHP_EOL);
+    print ( '<td class="left result ">' . $this->Place . '</td>' . PHP_EOL);
+
+    print ( "</tr>" . PHP_EOL);
+    
+    } /* end while */ 
+?>
+
+</tbody>
+</table>
+</div>
+
+<?php 
+  } /* end if */
+  else {
+    print ( "<p>Keine Kontakte gefunden.</p>" );
+  }
+
+    } /* end of contact.list */
+
+    
+}
+
+function EventTableRows () {
+  
+  $events = new event();
+  
+  $SQL = "SELECT * FROM events ORDER BY Starttime;";
+    
+  if (array_key_exists('event', $_POST)) {
+    $eid = $_POST['event'];
+  }
+  else {
+    $eid = "";
+  }
+  
+  $events->list($eid);
+  
+  } /* end of EventTableRows */
+
+?>

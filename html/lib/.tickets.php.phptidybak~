@@ -1,0 +1,95 @@
+<?php
+
+include_once "db.php";
+include_once "lib.php";
+
+class ticket extends evservicesdb {
+
+    public $id  = 0;
+    public $eid = 0;
+    public $cid = 0;
+    public $reserved = 0;
+    public $confirmed = 0;
+    public $confirmkey = "";
+    
+    function __constructor1 ($id) {
+        
+        parent::__construct();
+        $this-> id = $id;
+        
+    }
+    
+    function copyrow ($reset = FALSE) {
+        
+        parent::copyrow();
+        
+        $this->id = $this->rres['id'];
+        $this->eid = $this->rres['eid'];
+        $this->cid = $this->rres['cid'];
+        $this->reserved = $this->rres['reserved'];
+        $this->confirmed = $this->rres['confirmed'];
+        $this->confirmkey = $this->rres['confirmkey'];
+    
+    }
+    
+    function fetchrow () {
+
+        if(parent::fetchrow()){
+            $this->copyrow();
+            return(TRUE);
+        } else {
+          $this->id = NULL;
+          return(FALSE);
+        }
+
+    }
+    
+    function update_ticket () {
+        
+        $SQL = 'update tickets ' 
+        . ' set eid = ' . $this->eid 
+        . ' , cid = ' . $this->cid
+        . ' , reserved = ' . $this->reserved
+        . ' , confirmed = ' . $this->confirmed
+        . ' , confirmkey = "' . $this->confirmkey . '"'
+        . ' where id =' . $this->id 
+        . ';';
+        
+        parent::update($SQL);
+        
+    }
+    
+    function new_ticket () {
+        
+
+        $SQL = 'insert into tickets ' 
+        . ' values ( NULL'
+        . ' , ' . $this->eid 
+        . ' , ' . $this->cid
+        . ' , ' . $this->reserved
+        . ' , ' . $this->confirmed
+        . ' , "' . bin2hex(random_bytes(16)) . '"'
+        . ');';
+        
+        if (parent::insert($SQL) === TRUE) {
+            return(TRUE);
+        } else {
+            return(FALSE);
+        }    
+    }
+
+    function lookup ( $eid , $cid) {
+        
+        $SQL = 'select * from tickets where eid =' . $eid . ' and cid = ' . $cid . ' limit 1;'; 
+        if ($this->select($SQL)) {
+            $this->fetchrow();
+        } else {
+            $this->id = NULL;
+        }
+    
+    }
+
+
+}
+
+?>

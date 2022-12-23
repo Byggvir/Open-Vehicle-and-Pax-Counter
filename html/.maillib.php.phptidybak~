@@ -1,0 +1,39 @@
+<?php
+
+global $AnmeldungTest;
+
+isset($AnmeldungTest) or exit("No direct calls!");
+
+function SendConfirmMail( mailto, confirmurl, revokeurl )
+{
+
+    $message = "
+Bitte öffnen Sie den folgenden Link,
+um Ihre Anmeldung zum Gottesdienst zu bestätigen
+
+    $confirmurl
+
+Ohne Bestätigung wird die Anmeldung nach 48 Stunden gelöscht.
+
+Mit folgendem Link können Sie Ihre Anmeldung später widerrufen.
+
+    $revokeurl
+
+Mit freundlichen Grüßen
+
+Thomas Arend
+";
+
+    $to=$mail; 
+
+    $headers = "From: Anmeldung Gottesdienst <admin@ev-kircherheinbach.de>"; 
+
+    $subject = "Bitte bestätigen Sie Ihre Anmeldung zum Gottesdienst";  
+
+    if (mail($to, $subject, $message, $headers) ) {
+
+
+    }
+}
+
+?>

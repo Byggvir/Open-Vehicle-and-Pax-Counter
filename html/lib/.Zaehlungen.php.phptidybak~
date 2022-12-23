@@ -1,0 +1,201 @@
+<?php
+/**
+ * Zaehlungen.php
+ *
+ * @package default
+ */
+
+
+/*
+ * Autor: Thomas Arend
+ * Stand: 22.12.2022
+ *
+ * Better quick and dirty than perfect but never!
+ *
+ * Securety check: No direct calls are allowed
+ */
+
+global $VerkehrTest;
+
+isset($VerkehrTest) or exit ( "No direct calls!" ) ;
+
+include_once "db.php";
+include_once "lib.php";
+
+/* Retrieve the results fom database and print out the rows  */
+
+class Zaehlungen extends ZaehlungDB {
+
+	public $id   = 0;
+	public $Zeitpunkt = 0;
+	public $aid = 'Pkw';
+	public $Insassen  = 1;
+
+	/*
+    Create object.
+ */
+
+	/**
+	 *
+	 */
+	public function __construct() {
+
+		parent::__construct();
+
+	}
+
+	/**
+	 *
+	 * @param array   $arr
+	 */
+	
+	public function set(array $arr) {
+
+		if (array_key_exists('id', $arr)) {
+			$this->id = trim( $arr['id']);
+        } else {
+           $this->id = NULL; 
+		}
+
+		if (array_key_exists('Zeitpunkt', $arr)) {
+			$this->Zeitpunkt = trim( $arr['Zeitpunkt']);
+		}
+
+		if (array_key_exists('aid', $arr)) {
+			$this->aid = trim( $arr['aid']);
+		}
+
+		if (array_key_exists('Insassen', $arr)) {
+			$this->Insassen = trim( $arr['Insassen']);
+		}
+		
+	}
+
+
+	/**
+	 *
+	 * @param unknown $reset (optional)
+	 */
+	function copyrow($reset = FALSE) {
+
+		parent::copyrow();
+
+		$this->set($this->rres);
+
+	}
+
+	/**
+	 *
+	 * @param unknown $id
+	 */
+	function look_up($id) {
+        
+        if (is_null($id) or !is_numeric($id)) {
+            $SQL = 'select * from Fahrzeuge limit 1;';
+        } else {
+            $SQL = 'select * from Fahrzeuge where id =' . $id . ' limit 1;';
+        }
+		if ($this->select($SQL)){
+            $this->fetchrow(TRUE);
+        }
+
+	}
+
+
+	/**
+	 *
+	 * @return unknown
+	 */
+
+
+	/**
+	 *
+	 * @param unknown $beobachtung
+	 * @return unknown
+	 */
+	function add_beobachtung() {
+	
+            $INSERT = 'insert into Fahrzeuge (aid, Insassen) values('
+				. $this->aid 
+                . ' , ' . $this->Insassen 
+                . ' );' ;
+            $this->insert($INSERT);
+        }
+        // Now our visitor should be in contacts table add we can add a ticket
+            
+	/**
+	 *
+	 */
+	function list () {
+        
+        $SQL = 'select Z.id as id, Z.Zeitpunkt as Zeitpunkt, A.Art as Art, Z.Insassen as Insassen from Fahrzeuge as Z join FahrzeugArt as A on Z.aid = A.id ;';
+		if ( $this->select($SQL) ) {
+
+
+			// Table header
+?>
+
+<div class="table-wrapper contact-wrapper">
+
+<table>
+<thead>
+<tr>
+<th id="thselect" class="FahrzeugId">
+Id
+</th>
+<th id="thZeitpunkt" class="FahrzeugZeitpunkt">
+Zeitpunkt
+</th>
+<th id="thArt" class="FahrzeugArt">
+Art
+</th>
+
+<th id="thInsassen" class="FahrzeugInsassen">
+Insassen
+</th>
+</tr>
+</thead>
+<tbody>
+
+<?php
+
+			while ($this->fetchrow()) {
+
+				/* Table of Records */
+
+				print ( '<tr>' );
+				print ( '<td class="center result radiobutton">' );
+				print ( '<input type="radio" id="Zaehlung'
+					. $this->id
+					. '" name="Zaehlung" value="'
+					. $this->id
+					. '" '
+					. '>' ) ;
+
+				print ( "</td>" );
+
+				print ( '<td class="left result">' . $this->data['Zeitpunkt'] . '</td>' );
+				print ( '<td class="left result">' . $this->data['Art'] . '</td>' );
+				print ( '<td class="left result">' . $this->data['Insassen'] . '</td>' );
+				print ( "</tr>" );
+
+			} /* end while */
+?>
+
+</tbody>
+</table>
+</div>
+
+<?php
+		} /* end if */
+		else {
+			print ( "<p>Keine Zählungen gefunden.</p>" );
+		}
+
+	} /* end of contact.list */
+
+
+}
+
+
+?>
